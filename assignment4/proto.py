@@ -1,12 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
-tau = 1
-N = 10
+tau = .0001
+N = 61
 L = 1
 h = L/(N-1)
 
-kappa = 1
+kappa = 1.
 coeff = kappa*tau/h**2
 
 tt = np.zeros(N)
@@ -18,6 +19,7 @@ plot_step = 6
 nplots = 51#nstep/plot_step + 1
 
 tt = np.zeros(N)
+tt[round(N/2)] = 1/h
 tt_new = np.zeros(N)
 xplot = np.zeros(N)
 tplot = np.zeros(nplots)
@@ -38,4 +40,9 @@ for i in range(1, nstep):
         tplot[iplot] = i * tau
         iplot += 1
 
-print(tt)
+#fig = plt.figure()
+#ax = fig.gca(projection='3d')
+#surf = ax.plot_trisurf(xplot, tplot, rstride=1, linewidth=0, antialiased=False)
+
+plt.plot(ttplot)
+plt.show()
