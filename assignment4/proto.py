@@ -40,9 +40,13 @@ for i in range(1, nstep):
         tplot[iplot] = i * tau
         iplot += 1
 
-#fig = plt.figure()
-#ax = fig.gca(projection='3d')
-#surf = ax.plot_trisurf(xplot, tplot, rstride=1, linewidth=0, antialiased=False)
+X = tplot
+Y = xplot
+X, Y = np.meshgrid(X, Y)
+Z = ttplot
 
-plt.plot(ttplot)
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_wireframe(X, Y, Z, rstride=10, cstride=10)
+
 plt.show()
