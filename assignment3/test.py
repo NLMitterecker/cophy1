@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 class WaveSimulationConfig:
 
@@ -37,10 +38,29 @@ class WaveSimulation:
     def simulate(self, nmax):
         for steps in range(1, nmax):
             self.propagate()
-            plt.plot(self.config.x / self.config.string_dimension, self.config.y_next)
-            plt.show()
 
-simulation_config = WaveSimulationConfig(1000, 1000, 0.3, 1)
+
+simulation_config = WaveSimulationConfig(1000, 1000, 0.5, 1)
 wave_simulation = WaveSimulation(simulation_config)
 wave_simulation.simulate(1000)
-print("dsad")
+
+
+#for step in range(1, simulation_config.string_dimension):
+#    X = simulation_config.x / simulation_config.string_dimension
+#    Y = simulation_config.simulation_data[step]
+#    plt.plot(X, Y[0])
+#    plt.show()
+
+f, ax = plt.subplots()
+
+def animate(step):
+    ax = plt.axes(title='Waves on a string\n(fixed ends)', xlim=(0, 0.1), ylim=(-2, 2), xlabel='x (m)', ylabel='y (m)')
+    p, = ax.plot([], [])
+    X = (simulation_config.x / simulation_config.string_dimension)* 100
+    Y = simulation_config.simulation_data[step]
+    p.set_data(X, Y[0])
+    return p,
+
+gif = animation.FuncAnimation(f, animate, interval=simulation_config.string_dimension, frames=25, blit=True)
+plt.show()
+
