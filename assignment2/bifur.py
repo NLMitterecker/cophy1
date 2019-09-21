@@ -57,8 +57,8 @@ class Pendulum:
                 while self.th[step] < -np.pi:
                     self.th[step] += 2 * np.pi
 
-            for step in range(10, 50):
-                n = step * 3
+            for step in range(500, 1000):
+                n = step * 600
                 self.theta_in_bifurcation_diagram.append(self.th[n])
                 self.theta_versus_F_D.append(f_d)
 
@@ -74,26 +74,26 @@ class Pendulum:
     def get_om(self):
         return self.om
 
-pendulum_config = PendulumConfig(l = 1,           # pendulum length
-                                 dt = 0.01,         # time steps
+pendulum_config = PendulumConfig(l = 9.8,           # pendulum length
+                                 dt = 0.1,         # time steps
                                  q = 0.5,           # damping
-                                 fd = 0.2,        # ???
+                                 fd = 1.31,        # ???
                                  th0 = 5,  # initial angle
-                                 dr = 2,          # Omega?!
-                                 nmax = 5003,
+                                 dr = 2/3,          # Omega?!
+                                 nmax = 600000,
                                  dth = 0,           # omega
                                  dom = 5)           # delta angular velocity
 
 pendulum = Pendulum(pendulum_config)
 pendulum.calculate()
-plt.plot(pendulum.get_t(), pendulum.get_th())
+#plt.plot(pendulum.get_t(), pendulum.get_th())
 
 plt.show()
-# plt.plot(pendulum.theta_versus_F_D, pendulum.theta_in_bifurcation_diagram, '.')
-# plt.xlabel(r'$F_D$')
-# plt.ylabel(r'$\theta$ (radians)')
-# plt.xlim(1.33, 1.39)
-# plt.ylim(1, 2)
-
+plt.plot(pendulum.theta_versus_F_D, pendulum.theta_in_bifurcation_diagram, '.')
+plt.xlabel(r'$F_D$')
+plt.ylabel(r'$\theta$ (radians)')
+plt.xlim(1.33, 1.39)
+plt.ylim(1, 2)
+plt.show()
 # Rescale angle ???????
 # n=nmax
