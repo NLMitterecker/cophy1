@@ -31,20 +31,21 @@ class Pendulum:
                                                                                             self.omega_vec[0] ** 2
         self.total_energy[0] = self.kinetic_energy[0] + self.potential_energy[0]
 
-        #self.total_energy[0] = 0.5 * self.config.pendulum_mass * self.config.pendulum_length**2 *\
-        #                       self.omega_vec[0]**2 + self.config.pendulum_mass * g * self.config.pendulum_length *\
-        #                       (1 - np.cos(self.theta_vec[0]))
-    def euler_method(self):
+    def calculate_kinetic_energy(self, omega):
+        return 0.5 * self.config.pendulum_mass * self.config.pendulum_length**2 * omega**2
 
+    def calculate_potential_energy(self, theta):
+        return self.config.pendulum_mass * g * self.config.pendulum_length * (1 - np.cos(theta))
+
+    def euler_method(self):
         for step in range(1, self.config.max_steps):
             omega_old = self.omega_vec[step-1]
             theta_old = self.theta_vec[step-1]
             omega = omega_old - (g / self.config.pendulum_length) * np.sin(theta_old) * self.config.time_resolution
             theta = theta_old + omega_old * self.config.time_resolution
-            self.total_energy[step] = self.total_energy[step-1] + 0.5 * self.config.pendulum_mass *\
-                                      self.config.pendulum_length**2 * \
-                                      ((omega**2 + g / self.config.pendulum_length) * theta**2) *\
-                                      self.config.time_resolution
+            self.kinetic_energy[step] = self.calculate_kinetic_energy(omega)
+            self.potential_energy[step] = self.calculate_potential_energy(theta)
+            self.total_energy[step] = self.kinetic_energy[step-1] + self.potential_energy[step-1]
             self.time_vec[step] = self.config.time_resolution * step
             self.theta_vec[step] = theta
             self.omega_vec[step] = omega
@@ -56,8 +57,8 @@ class Pendulum:
             theta_old = self.theta_vec[step-1]
             omega = omega_old - (g / self.config.pendulum_length) * np.sin(theta_old) * self.config.time_resolution
             theta = theta_old + omega * self.config.time_resolution
-            self.kinetic_energy[step] = 0.5 * self.config.pendulum_mass * self.config.pendulum_length**2 * omega**2
-            self.potential_energy[step] = self.config.pendulum_mass * g * self.config.pendulum_length * (1 - np.cos(theta))
+            self.kinetic_energy[step] = self.calculate_kinetic_energy(omega)
+            self.potential_energy[step] = self.calculate_potential_energy(theta)
             self.total_energy[step] = self.kinetic_energy[step-1] + self.potential_energy[step-1]
             self.time_vec[step] = self.config.time_resolution * step
             self.theta_vec[step] = theta
@@ -88,19 +89,19 @@ class Pendulum:
             plt.show()
 
 #theta0, omega0, tau, g, l, numSteps
-pendulum_config = PendulumConfig(0.15, 0, 0.01, 9.8, 10000, 30)
+pendulum_config = PendulumConfig(0.2, 0, 0.01, 1, 3000, 1)
 pendulum = Pendulum(pendulum_config)
 
-pendulum.euler_method()
-#pendulum.euler_cromer_method()
+#pendulum.euler_method()
+pendulum.euler_cromer_method()
 
 #pendulum.draw_plot('energy', 'euler_cromer.png')
-pendulum.draw_plot('energy', 'euler.png')
+pendulum.draw_plot('energy', show_plot=True)
 
-# Inputs: theta0 (the initial angle, in rad)
-#		  omega0 (the initial angular velocity, in rad/s)
-#		  tau (the time step)
-#		  m (mass of the pendulum)
-#	      g (gravitational constant)
-#		  l (length of the pendulum)
-#		  numSteps (number of time steps to take, in s)
+# theta0 (the initial angle, in rad)
+# omega0 (the initial angular velocity, in rad/s)
+# tau (the time step)
+# m (mass of the pendulum)
+# g (gravitational constant)
+# l (length of the pendulum)
+# numSteps (number of time steps to take, in s)
