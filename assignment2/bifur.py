@@ -1,99 +1,66 @@
-import math
 import numpy as np
-from scipy.constants import g, pi
 import matplotlib.pyplot as plt
+from scipy.constants import g, pi
 
-class PendulumConfig:
+class BifurcationConfig:
 
-    def __init__(self, dt, q, fd, th0,
-                 dr, l, nmax, dth, dom):
+    def __init__(self):
+        self.omega = []
+        self.theta = []
+        self.dt = (2 * np.pi / (2.0 / 3.0)) / 600
+        self.time = []
+        self.theta_bifurcation = []
+        self.FD = np.arange(1.35, 1.5, 0.001)
+        self.theta_vs_FD = []
+        self.l = 9.8
+        self.q = 0.5
+        self.Omega_D = 2/3
 
-        self.th0 = th0 *np.pi/180   # initial angle
-        self.dt = dt                # time step
-        self.q = q                  # damping constant
-        self.fd = fd                # force amp
-        self.l = l                  # pendulum length
-        self.nmax = nmax
-        self.dth = dth              # change angle
-        self.dom = dom              # change angular velocity
-        self.dr = dr                # frequency
+class Bifurcation:
 
-class Pendulum:
-
-    def __init__(self, pendulum_config):
-        self.config = pendulum_config
-        self.t = np.zeros(pendulum_config.nmax)
-        self.th = np.zeros(pendulum_config.nmax)
-        self.om = np.zeros(pendulum_config.nmax)
-        self.th[0] = pendulum_config.th0
-        self.om[0] = 0          # omega 0 ???
-        self.theta_in_bifurcation_diagram = []
-        self.theta_versus_F_D = []
-        # th0 ... initial angle
-        # om ... angular velocity
-        # l ... pendulum length
+    def __init__(self, bifurcation_config):
+        self.config = bifurcation_config
 
     def calculate(self):
-        # TODO bifurcation via decorator over calculate
-        for f_d in np.arange(self.config.fd, self.config.fd+0.035, 0.001):
-            for step in range(1, self.config.nmax):
-                self.t[step] = self.t[step - 1] + self.config.dt
-                self.config.dom = self.dv(
-                        self.om[step-1],
-                        self.th[step-1],
-                        self.t[step-1],
-                        g,
-                        self.config.l,
-                        self.config.q,
-                        self.config.fd,
-                        self.config.dr)
 
-                self.om[step] = self.om[step - 1] + self.config.dt * self.config.dom
-                self.th[step] = self.th[step - 1] + self.config.dt * self.om[step]
-# If θi+1 is out of the range [-π,π], add or subtract 2π to keep it in this range
-# read pseudocode description in slides!
-                while self.th[step] > np.pi:
-                    self.th[step] -= 2 * np.pi
-                while self.th[step] < -np.pi:
-                    self.th[step] += 2 * np.pi
+        for fd_step in self.config.FD:
+            self.config.omega.append([0])
+            self.config.theta.append([0.2])
+            self.config.time.append([0])
 
-            for step in range(500, 1000):
+            for i in range(500000):
+                _omega = self.config.omega[-1][-1] - ((g / self.config.l) * np.sin(self.config.theta[-1][-1]) +
+                                                      self.config.q * self.config.omega[-1][-1] - fd_step *
+                                                      np.sin(self.config.Omega_D * self.config.time[-1][-1])) *\
+                         self.config.dt
+                _theta = self.config.theta[-1][-1] + _omega * self.config.dt
+
+                while _theta > np.pi:
+                    _theta -= 2 * pi
+                while _theta < -np.pi:
+                    _theta += 2 * pi
+
+                self.config.omega[-1].append(_omega)
+                self.config.theta[-1].append(_theta)
+                self.config.time[-1].append(self.config.dt * i)
+
+            for step in range(300, 700):
                 n = step * 600
-                self.theta_in_bifurcation_diagram.append(self.th[n])
-                self.theta_versus_F_D.append(f_d)
+                self.config.theta_bifurcation.append(self.config.theta[-1][n])
+                self.config.theta_vs_FD.append(fd_step)
 
-    def dv(self, om0, th0, t0, g, l, q, fd, dr):
-        return -g / l * math.sin(th0) - q * om0 + fd * math.sin(dr * t0)        # dr ... Omega_D
+    def draw_plot(self):
 
-    def get_t(self):
-        return self.t
+        plt.plot(self.theta_vs_FD, self.theta_bifurcation, '.')
+        plt.title('Bifurcation')
+        plt.xlabel(r'$F_D$')
+        plt.ylabel(r'$\theta$ (radians)')
+        plt.xlim(1.35, 1.5)
+        plt.ylim(1, 3)
+        plt.show()
 
-    def get_th(self):
-        return self.th
 
-    def get_om(self):
-        return self.om
-
-pendulum_config = PendulumConfig(l = 9.8,           # pendulum length
-                                 dt = 0.1,         # time steps
-                                 q = 0.5,           # damping
-                                 fd = 1.31,        # ???
-                                 th0 = 5,  # initial angle
-                                 dr = 2/3,          # Omega?!
-                                 nmax = 600000,
-                                 dth = 0,           # omega
-                                 dom = 5)           # delta angular velocity
-
-pendulum = Pendulum(pendulum_config)
-pendulum.calculate()
-#plt.plot(pendulum.get_t(), pendulum.get_th())
-
-plt.show()
-plt.plot(pendulum.theta_versus_F_D, pendulum.theta_in_bifurcation_diagram, '.')
-plt.xlabel(r'$F_D$')
-plt.ylabel(r'$\theta$ (radians)')
-plt.xlim(1.33, 1.39)
-plt.ylim(1, 2)
-plt.show()
-# Rescale angle ???????
-# n=nmax
+bifurcation_config = BifurcationConfig()
+bifurcation = Bifurcation(bifurcation_config)
+bifurcation.calculate()
+bifurcation.draw_plot()

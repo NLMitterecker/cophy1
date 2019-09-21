@@ -105,3 +105,4 @@ pendulum.draw_plot('energy', show_plot=True)
 # g (gravitational constant)
 # l (length of the pendulum)
 # numSteps (number of time steps to take, in s)
+
