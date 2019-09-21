@@ -1,34 +1,16 @@
-from .AbstractWaveSimulationConfig import AbstractWaveSimulationConfig
+import numpy as np
 
-class WaveSimulationConfig(AbstractWaveSimulationConfig):
+class WaveSimulationConfig:
 
-    # TODO what is c, k??
-    # TODO Refactor *args, **kwargs?
-    def __init__(self, string_size, step_size, segment_length, initial_position, c, k):
-
-        self.string_size = string_size
-        self.step_size = step_size
-        self.segment_length = segment_length
-        self.initial_position = initial_position
-        self.c = c
+    def __init__(self, string_dimension, k, x_init, r):
+        self.string_dimension = string_dimension
+        self.x = np.linspace(1 / string_dimension, 1, num = string_dimension)
+        self.y_dimension = np.zeros(string_dimension)
+        self.x_init = x_init
         self.k = k
-
-    def string_size(self):
-        return self.string_size
-
-    def step_size(self):
-        return self.step_size
-
-    def segment_length(self):
-        return self.segment_length
-
-    def initial_position(self):
-        return self.initial_position
-
-    # TODO c?
-    def c(self):
-        return self.c
-
-    # TODO k?
-    def k(self):
-        return self.k
+        self.initial_position = np.exp(-1 * self.k * (self.x - x_init)**2)
+        self.y_current = self.initial_position
+        self.y_previous = self.initial_position
+        self.y_next = np.zeros(string_dimension)
+        self.r = r
+        self.simulation_data = []

@@ -1,51 +1,38 @@
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import numpy as np
 
 class WaveSimulation:
 
-    def __init__(self, SimulationConfig):
-        self.simulation_config = SimulationConfig
-        self.ycurrent = None
-        self.yprevious = None
-        self.ynext = None
-        self.fig = plt.figure()
-        self.ax = plt.axes(xlim=(0, 2), ylim=(-2, 2))
-        self.line, = self.ax.plot([], [], lw=2)
-        self.anim = None
+    def __init__(self, wave_simulation_config):
+        self.config = wave_simulation_config
+        self.f, self.ax = plt.subplots()
 
-    def initial_position(self):
-        return np.exp(-1 * self.simulation_config.k() *
-                      (self.simulation_config.segment_length()
-                       - self.simulation_config.initial_position())**2)
+    def reset_y_axis(self):
+        self.config.y_next = np.zeros(self.config.string_dimension)
 
-    def set_ycurrent(self, position):
-        self.ycurrent = position
+    def propagate(self):
+        self.reset_y_axis()
+        for step in range(2, self.config.string_dimension-1):
+            self.config.y_next[step] = 2 * (1 - self.config.r**2) * self.config.y_current[step] - \
+                                       self.config.y_previous[step] + (self.config.r**2) * \
+                                       (self.config.y_current[step+1] + self.config.y_current[step-1])
+        self.config.simulation_data.append([self.config.y_next])
+        self.config.y_previous = self.config.y_current
+        self.config.y_current = self.config.y_next
 
-    def set_yprevious(self, position):
-        self.yprevious = position
+    def simulate(self, nmax):
+        for steps in range(1, nmax):
+            self.propagate()
 
-    def init(self):
-        self.line.set_data(self.simulation_config.step_size, np.exp(-1 * self.simulation_config.k * (self.simulation_config.segment_length - 0.3)**2))
-        return self.line,
+    def animation_frame(self, step):
+        self.ax = plt.axes(title='Waves on a string with fixed ends', xlim=(0, 0.001), ylim=(-2, 2))
+        p, = self.ax.plot([], [], color='steelblue')
+        X = self.config.x / self.config.string_dimension
+        Y = self.config.simulation_data[step]
+        p.set_data(X, Y[0])
+        return p,
 
-    def run(self, i):
-        r = 1
-        x = np.linspace(0, 2, 1000)
-        self.ynext = 2*(1-r**2) * self.ycurrent(i)
-        self.ycurrent = y
-        self.line.set_data(x, y)
-        return self.line,
-
-    def propa(self):
-        r = 1
-        self.ynext
-        return 2*()
-
-    def draw(self):
-        self.anim = animation.FuncAnimation(self.fig, self.run, init_func=self.init,
-                                            frames=200, interval=2000, blit=True)
+    def animate(self):
+        gif = animation.FuncAnimation(self.f, self.animation_frame, interval=10, frames=10000, blit=True)
         plt.show()
-
-
-
