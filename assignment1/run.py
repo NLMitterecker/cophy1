@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 import datetime
 
@@ -12,6 +13,7 @@ class DataSet:
         self.script_path = os.path.dirname(os.path.abspath(__file__))
         self.data_path = os.path.join(self.script_path, 'data')
         self.datasets = {}
+        self.y_vec =[]
         self.datasets['barrow'] = {
             "file_location": os.path.join(self.data_path, 'Barrow.dat'),
             "type": "csv"
@@ -29,9 +31,13 @@ class DataSet:
         if not self.datasets[dataset_name]:
             raise Exception("Dataset not found!")
 
+    #def set_timestamps_in_dataset(self):
+    #    self.data_frame['timestamp'] = \
+    #        self.data_frame.apply(lambda row: self.initial_timestamp+datetime.timedelta(days = row.name*14), axis = 1)
+
     def set_timestamps_in_dataset(self):
         self.data_frame['timestamp'] = \
-            self.data_frame.apply(lambda row: self.initial_timestamp+datetime.timedelta(days = row.name*14), axis = 1)
+            self.data_frame.apply(lambda row: row.name, axis = 1)
 
     def set_column_header(self):
         self.data_frame.columns = self.column_header
@@ -60,57 +66,40 @@ class Regression:
         self.beta1 = 0
 
     def calculate(self):
+        sum_x = 0
+        sum_xx = 0
+        sum_y = 0
+        sum_xy = 0
+
         for data_row in self.dataset.data_frame.itertuples():
-        #    self.s += 1. /
-            print(data_row)
+            sum_x = sum_x + data_row.timestamp
+            sum_xx = sum_xx + data_row.timestamp**2
+            sum_y = sum_y + data_row.co2_measure
+            sum_xy = sum_xy + data_row.co2_measure * data_row.timestamp
+
+        delta = sum_x * sum_x - 229 * sum_xx
+        m = (sum_y * sum_x - 229 * sum_xy) / delta
+        b = (sum_x * sum_xy - sum_y * sum_xx) / delta
+
+        y_vec = []
+        for data_row in self.dataset.data_frame.itertuples():
+            y_vec.append( m*data_row.timestamp + b)
+
+        self.y_vec = y_vec
 
     def print_plot(self):
-        plt.plot(self.dataset.data_frame.timestamp, self.dataset.data_frame.co2_measure)
+        print("change = {}".format((self.y_vec[24] - self.y_vec[0])/1))
+        plt.axes(title='Waves on a string with fixed ends', xlim=(0, 300), ylim=(335, 365))
+        plt.plot(self.dataset.data_frame.timestamp, self.dataset.data_frame.co2_measure, '.')
+        plt.plot(self.dataset.data_frame.timestamp, self.y_vec)
         plt.xlabel(r'Year')
         plt.ylabel(r'$CO_2$ [ppm]')
         plt.show()
-    # for (i = 0;i<data;i++) {
-    #   s   +=         1. / (d[i]*d[i]);
-    #   sx  +=       x[i] / (d[i]*d[i]);
-    #   sy  +=       y[i] / (d[i]*d[i]);
-    #   sxx +=  x[i]*x[i] / (d[i]*d[i]);
-    #   sxy +=  x[i]*y[i] / (d[i]*d[i]);
-    # }
-    # delta  =  s*sxx - sx*sx;
-    # slope =   (s*sxy - sx*sy) / delta;
-    # inter = (sxx*sy - sx*sxy) / delta;
-    # System.out.println("intercpt= "+inter+", "+Math.sqrt(sxx/delta));
-    # System.out.println("slope =  "+slope+" , "+Math.sqrt(s/delta));
-    # System.out.println("Fit Program Complete.");
 
-
-# # Mean X and Y
-# mean_x = np.mean(X)
-# mean_y = np.mean(Y)
-#
-# # Total number of values
-# n = len(X)
-#
-# # Using the formula to calculate m and c
-# numer = 0
-# denom = 0
-# for i in range(n):
-#     numer += (X[i] - mean_x) * (Y[i] - mean_y)
-# denom += (X[i] - mean_x) ** 2
-# m = numer / denom
-# c = mean_y - (m * mean_x)
-#
-# # Print coefficients
-# print(m, c)
-
-
-
-
-
-dataset = DataSet('barrow')
+#dataset = DataSet('barrow')
+dataset = DataSet('mauna')
 dataset.set_timestamps_in_dataset()
 dataset.set_column_header()
 reg = Regression(dataset)
-
-#reg.calculate()
+reg.calculate()
 reg.print_plot()
